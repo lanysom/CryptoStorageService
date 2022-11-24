@@ -60,27 +60,44 @@ namespace CryptoStorageService.Controllers
             string id = User.Claims.First(c => c.Type == "Id").Value;
             string publicKey = User.Claims.First(c => c.Type == "publicKey").Value;
 
-            using Aes aes = Aes.Create();
+            // encrypts user data 
+            EncryptedUser encryptedUser = EncryptUserData(userDto, id, publicKey); // EncryptData(JsonSerializer.Serialize(userDto), aes.Key, aes.IV);
+           
+            _userDao.Create(encryptedUser);
+            return Ok(encryptedUser); // StatusCode(StatusCodes.Status501NotImplemented);
+        }
 
+        [HttpPut]
+        public IActionResult Put(UserDto userDto)
+        {
+            // gets userid and key from jwt
+            string id = User.Claims.First(c => c.Type == "Id").Value;
+            string publicKey = User.Claims.First(c => c.Type == "publicKey").Value;
 
-            byte[] encryptedKeyBytes = EncryptKeyIV(aes.Key, aes.IV, publicKey);
-            // encrypts user data and stores it in db
+            // encrypts user data
+            EncryptedUser encryptedUser = EncryptUserData(userDto, id, publicKey);
 
-            string encryptedData = EncryptData(JsonSerializer.Serialize(userDto), aes.Key, aes.IV); //Convert.ToBase64String(encryptedDataBytes);
-            string encryptedKeyIV = Convert.ToBase64String(encryptedKeyBytes);
+            _userDao.Update(encryptedUser);
+            return Ok(encryptedUser);
+        }
 
-            EncryptedUser encryptedUser = new()
+        private static EncryptedUser EncryptUserData(UserDto userDto, string id, string publicKey)
+        {
+            Aes aes = Aes.Create();
+            // encrypts user data 
+            string encryptedData = EncryptData(JsonSerializer.Serialize(userDto), aes.Key, aes.IV);
+            // encrypts key and IV
+            string encryptedKeyIV = EncryptKeyIV(aes.Key, aes.IV, publicKey);
+
+            return new()
             {
                 Id = new Guid(id),
                 EncryptedData = encryptedData, // symmetric encrypted data
                 EncryptedKey = encryptedKeyIV, // assymmetric encrypted key
             };
-            _userDao.Create(encryptedUser);
-
-            return Ok(encryptedUser); // StatusCode(StatusCodes.Status501NotImplemented);
         }
 
-        private static byte[] EncryptKeyIV(byte[] key, byte[] iv, string publicKey)
+        private static string EncryptKeyIV(byte[] key, byte[] iv, string publicKey)
         {
             byte[] publicKeyBytes = Convert.FromBase64String(publicKey);
             byte[] joinedKeyIVBytes = new byte[KEY_LENGTH + IV_LENGTH];
@@ -88,12 +105,9 @@ namespace CryptoStorageService.Controllers
             Buffer.BlockCopy(key, 0, joinedKeyIVBytes, 0, KEY_LENGTH);
             Buffer.BlockCopy(iv, 0, joinedKeyIVBytes, KEY_LENGTH, IV_LENGTH);
 
-            using (RSACryptoServiceProvider rsaProvider = new())
-            {
-                rsaProvider.ImportRSAPublicKey(publicKeyBytes, out int bytesRead);
-
-                return rsaProvider.Encrypt(joinedKeyIVBytes, false);
-            }
+            using RSA rsa = RSA.Create();
+            rsa.ImportRSAPublicKey(publicKeyBytes, out int bytesRead);
+            return Convert.ToBase64String(rsa.Encrypt(joinedKeyIVBytes, RSAEncryptionPadding.Pkcs1));
         }
 
         private static string EncryptData(string data, byte[] key, byte[] iv)
@@ -140,18 +154,16 @@ namespace CryptoStorageService.Controllers
             byte[] keyIvBytes = Convert.FromBase64String(keyIv);
             byte[] privateKeyBytes = Convert.FromBase64String(privateKey); // Encoding.UTF8.GetBytes(privateKey);
 
-            using (RSACryptoServiceProvider rsaProvider = new())
-            {
-                rsaProvider.ImportRSAPrivateKey(privateKeyBytes, out int bytesRead);
+            using RSA rsa = RSA.Create();
+            rsa.ImportRSAPrivateKey(privateKeyBytes, out int bytesRead);
 
-                byte[] decryptedKeyBytes = rsaProvider.Decrypt(keyIvBytes, false);
-                byte[] key = new byte[KEY_LENGTH];
-                byte[] iv = new byte[IV_LENGTH];
-                Buffer.BlockCopy(decryptedKeyBytes, 0, key, 0, KEY_LENGTH);
-                Buffer.BlockCopy(decryptedKeyBytes, KEY_LENGTH, iv, 0, IV_LENGTH);
-            
-                return (key, iv);
-            }
+            byte[] decryptedKeyBytes = rsa.Decrypt(keyIvBytes, RSAEncryptionPadding.Pkcs1);
+            byte[] key = new byte[KEY_LENGTH];
+            byte[] iv = new byte[IV_LENGTH];
+            Buffer.BlockCopy(decryptedKeyBytes, 0, key, 0, KEY_LENGTH);
+            Buffer.BlockCopy(decryptedKeyBytes, KEY_LENGTH, iv, 0, IV_LENGTH);
+
+            return (key, iv);
         }
     }
 }

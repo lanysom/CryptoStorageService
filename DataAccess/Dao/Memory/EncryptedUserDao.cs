@@ -29,7 +29,11 @@ namespace DataAccess.Dao.Memory
 
         public void Create(EncryptedUser entity)
         {
-            users.Add(entity);
+            EncryptedUser? user = users.Find(u => u.Id == entity.Id);
+            if (user == null)
+            {
+                users.Add(entity);
+            }
         }
 
         public EncryptedUser? Read(Guid id)
@@ -44,6 +48,8 @@ namespace DataAccess.Dao.Memory
             {
                 return false;
             }
+            updateUser.EncryptedData = entity.EncryptedData;
+            updateUser.EncryptedKey = entity.EncryptedKey;
             return true;
         }
 
