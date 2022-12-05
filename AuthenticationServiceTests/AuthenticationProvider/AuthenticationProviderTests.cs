@@ -19,16 +19,11 @@ namespace Authentication.Tests
             var provider = new AuthenticationProvider(new MemoryAuthenticationDataContext()); 
 
             // Act
-            var result1 = provider.CreateLogin("test", "password");
+            var result1 = provider.CreateLogin("test", "password", out ApplicationUser? user);
 
             // Assert
             Assert.True(result1);
-           
-            var result2 = provider.ValidateLogin("test", "password", out ApplicationUser? userinfo2);
-
-            // Assert
-            Assert.True(result2);
-            Assert.NotNull(userinfo2);
+            Assert.NotNull(user);
         }
     }
 }

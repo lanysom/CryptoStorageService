@@ -8,7 +8,6 @@ namespace Authentication
     public class AuthenticationProvider : IAuthenticationProvider
     {
         private readonly IAuthenticationDataContext _dataContext;
-        //private readonly ICertificateUtility _certificateUtility;
         private const KeyDerivationPrf PRF = KeyDerivationPrf.HMACSHA512;
         private const int ITERATION_COUNT = 10000;
         private const int SALT_LENGTH = 16;
@@ -19,32 +18,38 @@ namespace Authentication
             _dataContext = dataContext;
         }
 
-        public bool CreateLogin(string username, string password)
+        public bool CreateLogin(string username, string password, out ApplicationUser user)
         {
             // check username
             ApplicationUser? userInfo = _dataContext.GetUser(username);
             if (userInfo != null)
             {
+                user = new();
                 return false;
             }
 
-            RSA rsa = RSA.Create();
-            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
-            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
 
-            var privateKey = Convert.ToBase64String(privateKeyBytes);
-            var publicKey = Convert.ToBase64String(publicKeyBytes);
-
-            userInfo = new()
+            user = new()
             {
                 Id = Guid.NewGuid(),
                 Username = username,
-                PasswordHash = CreatePasswordHash(password), // creates password hash
-                PublicKey = publicKey, // create public key
-                PrivateKey = privateKey // create private key
+                PasswordHash = CreatePasswordHash(password) // creates password hash
             };
-            _dataContext.AddUser(userInfo);
+            _dataContext.AddUser(user);
             return true;
+        }
+
+
+        public void UpdateUser(ApplicationUser newUser)
+        {
+            ApplicationUser? oldUser = _dataContext.GetUser(newUser.Username);
+            if (oldUser != null)
+            {
+                oldUser.Username = newUser.Username;
+                oldUser.PrivateKey = newUser.PrivateKey;
+                oldUser.PublicKey= newUser.PublicKey;
+                _dataContext.UpdateUser(oldUser);
+            }
         }
 
         public ApplicationUser? GetUserInfo(string username)
@@ -100,7 +105,5 @@ namespace Authentication
             // returns result
             return passwordHashBytes.SequenceEqual(subkey);
         }
-
-
     }
 }

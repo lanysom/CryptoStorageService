@@ -35,5 +35,25 @@ namespace AuthenticationService.AuthenticationProvider.Data
         {
             return _users.SingleOrDefault(x => x.Username == username);
         }
+
+        public void RemoveUser(string username)
+        {
+            ApplicationUser? user = _users.SingleOrDefault(x => x.Username == username);
+            if (user != null)
+            {
+                _users.Remove(user);
+            }
+        }
+
+        public void UpdateUser(ApplicationUser newUser)
+        {
+            ApplicationUser? oldUser = _users.SingleOrDefault(x => x.Username == newUser.Username);
+            if (oldUser != null)
+            {
+                oldUser.Username = newUser.Username;
+                oldUser.PrivateKey = newUser.PrivateKey;
+                oldUser.PublicKey = newUser.PublicKey;
+            }
+        }
     }
 }

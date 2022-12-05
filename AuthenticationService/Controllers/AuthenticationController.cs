@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Authentication.Controllers
@@ -27,8 +28,13 @@ namespace Authentication.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginDto login)
         {
+            if (login.Username == null || login.Password == null)
+            {
+                throw new ArgumentException("Invalid login");
+            }
+
             // validate username and password
-            if (login.IsValid && _authenticationProvider.ValidateLogin(login.Username, login.Password, out ApplicationUser? userInfo))
+            if (_authenticationProvider.ValidateLogin(login.Username, login.Password, out ApplicationUser? userInfo))
             {
                 // login accepted                 
                 var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
@@ -39,7 +45,7 @@ namespace Authentication.Controllers
                     {
                         new Claim("Id", userInfo == null ? "" : userInfo.Id.ToString()),
                         new Claim("username", login.Username),
-                        new Claim("publicKey", userInfo == null ? "" : userInfo.PublicKey), 
+                        new Claim("publicKey", userInfo == null ? "" : userInfo.PublicKey),
                         new Claim("privateKey", userInfo == null ? "" : userInfo.PrivateKey),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     }),
@@ -59,14 +65,27 @@ namespace Authentication.Controllers
         [HttpPost("register")]
         public IActionResult Register(LoginDto login)
         {
-            if (login.IsValid)
+            if (login.Username == null || login.Password == null)
             {
-                // check username and create application user 
-                if (!_authenticationProvider.CreateLogin(login.Username, login.Password))
-                {
-                    return BadRequest("Could not create login");
-                }
+                throw new ArgumentException("Invalid login");
             }
+
+            // check username and create application user 
+            if (!_authenticationProvider.CreateLogin(login.Username, login.Password, out ApplicationUser user))
+            {
+                return BadRequest("Could not create login");
+            }
+
+            // creating keys
+            RSA rsa = RSA.Create();
+            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
+            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
+
+            user.PrivateKey = Convert.ToBase64String(privateKeyBytes);
+            user.PublicKey = Convert.ToBase64String(publicKeyBytes);
+
+            _authenticationProvider.UpdateUser(user);
+
             return Ok();
         }
 
