@@ -105,7 +105,7 @@ namespace Authentication.Controllers
             return Ok(info?.Map());
         }
 
-        public static (string, string) CreateEncryptedKeyPair(string password)
+        private static (string, string) CreateEncryptedKeyPair(string password)
         {
             // creating keys
             RSA rsa = RSA.Create();
@@ -132,26 +132,7 @@ namespace Authentication.Controllers
             return (privateKeySet, publicKeySet);
         }
 
-        public static string EncryptKey(string key, string password)
-        {
-            byte[] KeyBytes = Convert.FromBase64String(key);
-
-            // encrypting keys 
-            byte[] encryptedKeyBytes = new byte[KeyBytes.Length];
-            byte[] tag = new byte[16];
-            byte[] nonce;
-            byte[] encryptionKey = MD5.HashData(Encoding.UTF8.GetBytes(password));
-
-            using AesGcm aes = new(encryptionKey);
-            nonce = RandomNumberGenerator.GetBytes(12);
-            aes.Encrypt(nonce, KeyBytes, encryptedKeyBytes, tag);
-            string keySet = $"{Convert.ToBase64String(nonce)}.{Convert.ToBase64String(tag)}.{Convert.ToBase64String(encryptedKeyBytes)}";
-
-            return keySet;
-        }
-
-
-        public static string DecryptKey(string keySet, string password)
+        private static string DecryptKey(string keySet, string password)
         {
             // extract nonce
             byte[] nonce = Convert.FromBase64String(keySet[..16]);
@@ -165,7 +146,6 @@ namespace Authentication.Controllers
 
             using AesGcm aes = new(key);
             aes.Decrypt(nonce, encryptedKey, tag, decryptedKey);
-
 
             return Convert.ToBase64String(decryptedKey);
         }

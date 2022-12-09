@@ -79,7 +79,7 @@ namespace CryptoStorageService.Controllers
             return Ok(encryptedUser);
         }
 
-        public static EncryptedUser EncryptData(UserDto userDto, string id, string publicKey)
+        private static EncryptedUser EncryptData(UserDto userDto, string id, string publicKey)
         {
             // generate symmetric encryption key
             byte[] key = new byte[KEY_LENGTH];
@@ -95,11 +95,8 @@ namespace CryptoStorageService.Controllers
             byte[] tag = new byte[AesCcm.TagByteSizes.MaxSize];
 
             // symmetrically encrypt data
-            using AesCcm aesCcm = new(key);
-            aesCcm.Encrypt(nonce, plaintext, ciphertext, tag);
-
-            //using AesGcm aesGcm = new(key);
-            //aesGcm.Encrypt(nonce, plaintext, ciphertext, tag);
+            using AesGcm aesGcm = new(key);
+            aesGcm.Encrypt(nonce, plaintext, ciphertext, tag);
 
             // assymetrically encrypt key
             byte[] publicKeyBytes = Convert.FromBase64String(publicKey);
@@ -119,7 +116,7 @@ namespace CryptoStorageService.Controllers
         }
 
         
-        public static UserDto? DecryptData(EncryptedUser data, string privateKey)
+        private static UserDto? DecryptData(EncryptedUser data, string privateKey)
         {
             // decrypt symmetric key using the users private key
             byte[] encryptedKey = Convert.FromBase64String(data.EncryptedKey);
@@ -137,8 +134,8 @@ namespace CryptoStorageService.Controllers
             byte[] nonce = Convert.FromBase64String(data.Nonce);
 
             // symmetrically decrypt data
-            using AesCcm aesCcm = new(key);
-            aesCcm.Decrypt(nonce, ciphertext, tag, plaintext);
+            using AesGcm aesGcm = new(key);
+            aesGcm.Decrypt(nonce, ciphertext, tag, plaintext);
 
             return JsonSerializer.Deserialize<UserDto?>(Encoding.UTF8.GetString(plaintext));
         }
