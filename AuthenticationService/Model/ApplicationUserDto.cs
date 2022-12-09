@@ -6,7 +6,7 @@ namespace AuthenticationService.Model
     {
         public Guid Id { get; set; }
         public string? Username { get; set; }
-        public string? PrivateKey { get; set; }
-        public string? PublicKey { get; set; }
+        public string? EncryptedPrivateKey { get; set; }
+        public string? EncryptedPublicKey { get; set; }
     }
 }

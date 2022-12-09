@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace Authentication.Controllers
@@ -36,17 +37,26 @@ namespace Authentication.Controllers
             // validate username and password
             if (_authenticationProvider.ValidateLogin(login.Username, login.Password, out ApplicationUser? userInfo))
             {
+                if (userInfo == null)
+                {
+                    return Unauthorized();
+                }
+
                 // login accepted                 
                 var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 
+                // decrypting user keypair
+                var publicKey = DecryptKey(userInfo.EncryptedPublicKey, login.Password);
+                var privateKey = DecryptKey(userInfo.EncryptedPrivateKey, login.Password);
+                
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(new[]
                     {
                         new Claim("Id", userInfo == null ? "" : userInfo.Id.ToString()),
                         new Claim("username", login.Username),
-                        new Claim("publicKey", userInfo == null ? "" : userInfo.PublicKey),
-                        new Claim("privateKey", userInfo == null ? "" : userInfo.PrivateKey),
+                        new Claim("publicKey", userInfo == null ? "" : publicKey),
+                        new Claim("privateKey", userInfo == null ? "" : privateKey),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     }),
                     //Expires = DateTime.UtcNow.AddMinutes(5),
@@ -75,14 +85,11 @@ namespace Authentication.Controllers
             {
                 return BadRequest("Could not create login");
             }
-
             // creating keys
-            RSA rsa = RSA.Create();
-            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
-            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
+            (string encryptedPrivateKey, string encryptedPublicKey) = CreateEncryptedKeyPair(login.Password);
 
-            user.PrivateKey = Convert.ToBase64String(privateKeyBytes);
-            user.PublicKey = Convert.ToBase64String(publicKeyBytes);
+            user.EncryptedPrivateKey = encryptedPrivateKey;
+            user.EncryptedPublicKey = encryptedPublicKey;
 
             _authenticationProvider.UpdateUser(user);
 
@@ -97,5 +104,72 @@ namespace Authentication.Controllers
             ApplicationUser? info = _authenticationProvider.GetUserInfo(username);
             return Ok(info?.Map());
         }
+
+        public static (string, string) CreateEncryptedKeyPair(string password)
+        {
+            // creating keys
+            RSA rsa = RSA.Create();
+            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
+            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
+
+            // encrypting keys 
+            byte[] encryptedPrivateKey = new byte[privateKeyBytes.Length];
+            byte[] encryptedPublicKey = new byte[publicKeyBytes.Length];
+            byte[] tag = new byte[16];
+            byte[] nonce;
+            byte[] key = MD5.HashData(Encoding.UTF8.GetBytes(password));
+
+            using AesGcm privateAes = new(key);
+            nonce = RandomNumberGenerator.GetBytes(12);
+            privateAes.Encrypt(nonce, privateKeyBytes, encryptedPrivateKey, tag);
+            string privateKeySet = $"{Convert.ToBase64String(nonce)}.{Convert.ToBase64String(tag)}.{Convert.ToBase64String(encryptedPrivateKey)}";
+
+            using AesGcm publicAes = new(key);
+            nonce = RandomNumberGenerator.GetBytes(12);
+            publicAes.Encrypt(nonce, publicKeyBytes, encryptedPublicKey, tag);
+            string publicKeySet = $"{Convert.ToBase64String(nonce)}.{Convert.ToBase64String(tag)}.{Convert.ToBase64String(encryptedPublicKey)}";
+
+            return (privateKeySet, publicKeySet);
+        }
+
+        public static string EncryptKey(string key, string password)
+        {
+            byte[] KeyBytes = Convert.FromBase64String(key);
+
+            // encrypting keys 
+            byte[] encryptedKeyBytes = new byte[KeyBytes.Length];
+            byte[] tag = new byte[16];
+            byte[] nonce;
+            byte[] encryptionKey = MD5.HashData(Encoding.UTF8.GetBytes(password));
+
+            using AesGcm aes = new(encryptionKey);
+            nonce = RandomNumberGenerator.GetBytes(12);
+            aes.Encrypt(nonce, KeyBytes, encryptedKeyBytes, tag);
+            string keySet = $"{Convert.ToBase64String(nonce)}.{Convert.ToBase64String(tag)}.{Convert.ToBase64String(encryptedKeyBytes)}";
+
+            return keySet;
+        }
+
+
+        public static string DecryptKey(string keySet, string password)
+        {
+            // extract nonce
+            byte[] nonce = Convert.FromBase64String(keySet[..16]);
+            // extract tag
+            byte[] tag = Convert.FromBase64String(keySet[17..41]);
+            // extract key
+            byte[] encryptedKey = Convert.FromBase64String(keySet[42..]);
+
+            byte[] decryptedKey = new byte[encryptedKey.Length];
+            byte[] key = MD5.HashData(Encoding.UTF8.GetBytes(password));
+
+            using AesGcm aes = new(key);
+            aes.Decrypt(nonce, encryptedKey, tag, decryptedKey);
+
+
+            return Convert.ToBase64String(decryptedKey);
+        }
     }
+
+
 }

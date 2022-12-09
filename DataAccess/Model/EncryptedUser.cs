@@ -13,5 +13,7 @@ namespace DataAccess.Model
         public string EncryptedData { get; set; } = string.Empty;
 
         public string EncryptedKey { get; set; } = string.Empty;
+        public string Nonce { get; set; }
+        public string Tag { get; set; }
     }
 }
