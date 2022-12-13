@@ -1,5 +1,4 @@
-using DataAccess;
-using DataAccess.Model;
+using StorageProvider;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

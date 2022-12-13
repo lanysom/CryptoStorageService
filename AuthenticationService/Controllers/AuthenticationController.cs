@@ -122,12 +122,12 @@ namespace Authentication.Controllers
             using AesGcm privateAes = new(key);
             nonce = RandomNumberGenerator.GetBytes(12);
             privateAes.Encrypt(nonce, privateKeyBytes, encryptedPrivateKey, tag);
-            string privateKeySet = $"{Convert.ToBase64String(nonce)}.{Convert.ToBase64String(tag)}.{Convert.ToBase64String(encryptedPrivateKey)}";
+            string privateKeySet = $"{Convert.ToBase64String(nonce)}{Convert.ToBase64String(tag)}{Convert.ToBase64String(encryptedPrivateKey)}";
 
             using AesGcm publicAes = new(key);
             nonce = RandomNumberGenerator.GetBytes(12);
             publicAes.Encrypt(nonce, publicKeyBytes, encryptedPublicKey, tag);
-            string publicKeySet = $"{Convert.ToBase64String(nonce)}.{Convert.ToBase64String(tag)}.{Convert.ToBase64String(encryptedPublicKey)}";
+            string publicKeySet = $"{Convert.ToBase64String(nonce)}{Convert.ToBase64String(tag)}{Convert.ToBase64String(encryptedPublicKey)}";
 
             return (privateKeySet, publicKeySet);
         }
@@ -137,9 +137,9 @@ namespace Authentication.Controllers
             // extract nonce
             byte[] nonce = Convert.FromBase64String(keySet[..16]);
             // extract tag
-            byte[] tag = Convert.FromBase64String(keySet[17..41]);
+            byte[] tag = Convert.FromBase64String(keySet[16..40]);
             // extract key
-            byte[] encryptedKey = Convert.FromBase64String(keySet[42..]);
+            byte[] encryptedKey = Convert.FromBase64String(keySet[40..]);
 
             byte[] decryptedKey = new byte[encryptedKey.Length];
             byte[] key = MD5.HashData(Encoding.UTF8.GetBytes(password));

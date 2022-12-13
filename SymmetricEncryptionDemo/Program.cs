@@ -1,6 +1,4 @@
 ﻿using SymmetricEncryptionDemo;
-using System.Security.Cryptography;
-using System.Text;
 
 string plaintext = "The workshop instructor is a cryptographic genius";
 

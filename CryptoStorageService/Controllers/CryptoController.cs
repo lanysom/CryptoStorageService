@@ -1,10 +1,8 @@
 ﻿using CryptoStorageService.Models;
-using DataAccess;
-using DataAccess.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StorageProvider;
 using System.Security.Cryptography;
-using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Text.Json;
 
@@ -16,10 +14,6 @@ namespace CryptoStorageService.Controllers
     public class CryptoController : ControllerBase
     {
         private readonly IDao<EncryptedUser> _userDao;
-
-        private const int KEY_LENGTH = 32;
-        private const int NONCE_LENGTH = 13;
-        private const int TAG_LENGTH = 16;
 
         public CryptoController(IDao<EncryptedUser> userDao)
         {
@@ -45,7 +39,11 @@ namespace CryptoStorageService.Controllers
 
                 return Ok(decryptedData);
             }
-            catch (Exception)
+            catch (CryptographicException)
+            {
+                return NotFound(); // StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            catch(Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
@@ -82,21 +80,25 @@ namespace CryptoStorageService.Controllers
         private static EncryptedUser EncryptData(UserDto userDto, string id, string publicKey)
         {
             // generate symmetric encryption key
-            byte[] key = new byte[KEY_LENGTH];
+            byte[] key = new byte[32];
             RandomNumberGenerator.Fill(key);
+            
             // generate nonce
             byte[] nonce = new byte[AesCcm.NonceByteSizes.MaxSize];
             RandomNumberGenerator.Fill(nonce);
+
             // create plaintext bytes from UserDto
             byte[] plaintext = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(userDto));
+            
             // initialize chiphertext bytes
             byte[] ciphertext = new byte[plaintext.Length];
+            
             // initialize tag
             byte[] tag = new byte[AesCcm.TagByteSizes.MaxSize];
 
             // symmetrically encrypt data
-            using AesGcm aesGcm = new(key);
-            aesGcm.Encrypt(nonce, plaintext, ciphertext, tag);
+            using AesCcm aes = new(key);
+            aes.Encrypt(nonce, plaintext, ciphertext, tag);
 
             // assymetrically encrypt key
             byte[] publicKeyBytes = Convert.FromBase64String(publicKey);
@@ -126,16 +128,19 @@ namespace CryptoStorageService.Controllers
 
             // initialize chiphertext bytes
             byte[] ciphertext = Convert.FromBase64String(data.EncryptedData);
+           
             // create plaintext bytes from UserDto
             byte[] plaintext = new byte[ciphertext.Length];
+            
             // initialize tag
             byte[] tag = Convert.FromBase64String(data.Tag);
+            
             // initialize nonce
             byte[] nonce = Convert.FromBase64String(data.Nonce);
 
             // symmetrically decrypt data
-            using AesGcm aesGcm = new(key);
-            aesGcm.Decrypt(nonce, ciphertext, tag, plaintext);
+            using AesCcm aes = new(key);
+            aes.Decrypt(nonce, ciphertext, tag, plaintext);
 
             return JsonSerializer.Deserialize<UserDto?>(Encoding.UTF8.GetString(plaintext));
         }
