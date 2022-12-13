@@ -21,7 +21,8 @@ Console.WriteLine($"Encrypted data: {Convert.ToBase64String(encryptedData)}\n");
 // decrypt
 using RSA decryptRsa = RSA.Create();
 decryptRsa.ImportEncryptedPkcs8PrivateKey(password, privateKeyBytes, out _);
-byte[] decryptedData = keyRsa.Decrypt(encryptedData, RSAEncryptionPadding.OaepSHA256);
+
+byte[] decryptedData =decryptRsa.Decrypt(encryptedData, RSAEncryptionPadding.OaepSHA256);
 
 Console.WriteLine($"Decrypted data: {Encoding.UTF8.GetString(decryptedData)}");
 
