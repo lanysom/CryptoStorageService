@@ -110,10 +110,10 @@ namespace CryptoStorageService.Controllers
             return new()
             {
                 Id = new Guid(id),
-                EncryptedData = Convert.ToBase64String(ciphertext), // symmetric encrypted data
-                EncryptedKey = Convert.ToBase64String(encryptedKey), // assymmetric encrypted key
-                Nonce = Convert.ToBase64String(nonce),
-                Tag = Convert.ToBase64String(tag)
+                EncryptedData = ciphertext, // symmetric encrypted data
+                EncryptedKey = encryptedKey, // assymmetric encrypted key
+                Nonce = nonce,
+                Tag = tag
             };
         }
 
@@ -121,26 +121,16 @@ namespace CryptoStorageService.Controllers
         private static UserDto? DecryptData(EncryptedUser data, string privateKey)
         {
             // decrypt symmetric key using the users private key
-            byte[] encryptedKey = Convert.FromBase64String(data.EncryptedKey);
             using RSA rsa = RSA.Create();
             rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
-            byte[] key = rsa.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
+            byte[] key = rsa.Decrypt(data.EncryptedKey, RSAEncryptionPadding.OaepSHA256);
 
-            // initialize chiphertext bytes
-            byte[] ciphertext = Convert.FromBase64String(data.EncryptedData);
-           
             // create plaintext bytes from UserDto
-            byte[] plaintext = new byte[ciphertext.Length];
+            byte[] plaintext = new byte[data.EncryptedData.Length];
             
-            // initialize tag
-            byte[] tag = Convert.FromBase64String(data.Tag);
-            
-            // initialize nonce
-            byte[] nonce = Convert.FromBase64String(data.Nonce);
-
             // symmetrically decrypt data
             using AesCcm aes = new(key);
-            aes.Decrypt(nonce, ciphertext, tag, plaintext);
+            aes.Decrypt(data.Nonce, data.EncryptedData, data.Tag, plaintext);
 
             return JsonSerializer.Deserialize<UserDto?>(Encoding.UTF8.GetString(plaintext));
         }

@@ -3,9 +3,9 @@
     public class EncryptedUser
     {
         public Guid Id { get; set; }
-        public string EncryptedData { get; set; } = string.Empty;
-        public string EncryptedKey { get; set; } = string.Empty;
-        public string Nonce { get; set; } = string.Empty;
-        public string Tag { get; set; } = string.Empty;
+        public byte[] EncryptedData { get; set; } = Array.Empty<byte>();
+        public byte[] EncryptedKey { get; set; } = Array.Empty<byte>();
+        public byte[] Nonce { get; set; } = Array.Empty<byte>();
+        public byte[] Tag { get; set; } = Array.Empty<byte>();
     }
 }

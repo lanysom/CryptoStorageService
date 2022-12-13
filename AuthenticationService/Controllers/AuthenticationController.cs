@@ -47,6 +47,7 @@ namespace Authentication.Controllers
 
                 // adding user keypair
                 var publicKey = userInfo.PublicKey;
+
                 var privateKey = userInfo.EncryptedPrivateKey;
                 
                 var tokenDescriptor = new SecurityTokenDescriptor
