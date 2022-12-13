@@ -39,7 +39,7 @@ namespace CryptoStorageService.Controllers
 
                 return Ok(decryptedData);
             }
-            catch (CryptographicException)
+            catch (CryptographicException ex)
             {
                 return NotFound(); // StatusCode(StatusCodes.Status500InternalServerError);
             }

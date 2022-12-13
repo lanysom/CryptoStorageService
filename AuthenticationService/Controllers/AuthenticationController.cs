@@ -45,9 +45,9 @@ namespace Authentication.Controllers
                 // login accepted                 
                 var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 
-                // decrypting user keypair
-                var publicKey = DecryptKey(userInfo.EncryptedPublicKey, login.Password);
-                var privateKey = DecryptKey(userInfo.EncryptedPrivateKey, login.Password);
+                // adding user keypair
+                var publicKey = userInfo.PublicKey;
+                var privateKey = userInfo.EncryptedPrivateKey;
                 
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
@@ -86,10 +86,9 @@ namespace Authentication.Controllers
                 return BadRequest("Could not create login");
             }
             // creating keys
-            (string encryptedPrivateKey, string encryptedPublicKey) = CreateEncryptedKeyPair(login.Password);
-
+            (string encryptedPrivateKey, string PublicKey) = CreateKeyPair(login.Password);
             user.EncryptedPrivateKey = encryptedPrivateKey;
-            user.EncryptedPublicKey = encryptedPublicKey;
+            user.PublicKey = PublicKey;
 
             _authenticationProvider.UpdateUser(user);
 
@@ -105,51 +104,18 @@ namespace Authentication.Controllers
             return Ok(info?.Map());
         }
 
-        private static (string, string) CreateEncryptedKeyPair(string password)
+        private static (string, string) CreateKeyPair(string password)
         {
             // creating keys
             RSA rsa = RSA.Create();
+            //byte[] privateKeyBytes = rsa.ExportEncryptedPkcs8PrivateKey(password, new PbeParameters(PbeEncryptionAlgorithm.Aes128Cbc, HashAlgorithmName.SHA256, 1000));
             byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
             byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
 
-            // encrypting keys 
-            byte[] encryptedPrivateKey = new byte[privateKeyBytes.Length];
-            byte[] encryptedPublicKey = new byte[publicKeyBytes.Length];
-            byte[] tag = new byte[16];
-            byte[] nonce;
-            byte[] key = MD5.HashData(Encoding.UTF8.GetBytes(password));
+            string privateKey = Convert.ToBase64String(privateKeyBytes);
+            string publicKey = Convert.ToBase64String(publicKeyBytes);
 
-            using AesGcm privateAes = new(key);
-            nonce = RandomNumberGenerator.GetBytes(12);
-            privateAes.Encrypt(nonce, privateKeyBytes, encryptedPrivateKey, tag);
-            string privateKeySet = $"{Convert.ToBase64String(nonce)}{Convert.ToBase64String(tag)}{Convert.ToBase64String(encryptedPrivateKey)}";
-
-            using AesGcm publicAes = new(key);
-            nonce = RandomNumberGenerator.GetBytes(12);
-            publicAes.Encrypt(nonce, publicKeyBytes, encryptedPublicKey, tag);
-            string publicKeySet = $"{Convert.ToBase64String(nonce)}{Convert.ToBase64String(tag)}{Convert.ToBase64String(encryptedPublicKey)}";
-
-            return (privateKeySet, publicKeySet);
-        }
-
-        private static string DecryptKey(string keySet, string password)
-        {
-            // extract nonce
-            byte[] nonce = Convert.FromBase64String(keySet[..16]);
-            // extract tag
-            byte[] tag = Convert.FromBase64String(keySet[16..40]);
-            // extract key
-            byte[] encryptedKey = Convert.FromBase64String(keySet[40..]);
-
-            byte[] decryptedKey = new byte[encryptedKey.Length];
-            byte[] key = MD5.HashData(Encoding.UTF8.GetBytes(password));
-
-            using AesGcm aes = new(key);
-            aes.Decrypt(nonce, encryptedKey, tag, decryptedKey);
-
-            return Convert.ToBase64String(decryptedKey);
+            return (privateKey, publicKey);
         }
     }
-
-
 }

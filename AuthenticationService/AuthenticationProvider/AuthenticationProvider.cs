@@ -47,7 +47,7 @@ namespace Authentication
             {
                 oldUser.Username = newUser.Username;
                 oldUser.EncryptedPrivateKey = newUser.EncryptedPrivateKey;
-                oldUser.EncryptedPublicKey= newUser.EncryptedPublicKey;
+                oldUser.PublicKey= newUser.PublicKey;
                 _dataContext.UpdateUser(oldUser);
             }
         }
