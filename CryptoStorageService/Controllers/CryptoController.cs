@@ -122,7 +122,7 @@ namespace CryptoStorageService.Controllers
         {
             // decrypt symmetric key using the users private key
             using RSA rsa = RSA.Create();
-            rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
+            rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(privateKey), out _);
             byte[] key = rsa.Decrypt(data.EncryptedKey, RSAEncryptionPadding.OaepSHA256);
 
             // create plaintext bytes from UserDto

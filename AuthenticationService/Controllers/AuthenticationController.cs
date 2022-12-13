@@ -46,9 +46,10 @@ namespace Authentication.Controllers
                 var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 
                 // adding user keypair
+                using RSA rsa = RSA.Create();
+                rsa.ImportEncryptedPkcs8PrivateKey(login.Password, userInfo.EncryptedPrivateKey, out _);
                 var publicKey = userInfo.PublicKey;
-
-                var privateKey = userInfo.EncryptedPrivateKey;
+                var privateKey = rsa.ExportPkcs8PrivateKey();
                 
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
@@ -88,7 +89,7 @@ namespace Authentication.Controllers
             }
             // creating keys
             RSA rsa = RSA.Create();
-            user.EncryptedPrivateKey = rsa.ExportRSAPrivateKey();
+            user.EncryptedPrivateKey = rsa.ExportEncryptedPkcs8PrivateKey(login.Password, new PbeParameters(PbeEncryptionAlgorithm.Aes128Cbc, HashAlgorithmName.SHA256, 1000));
             user.PublicKey = rsa.ExportRSAPublicKey();
 
             _authenticationProvider.UpdateUser(user);
