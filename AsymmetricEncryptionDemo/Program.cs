@@ -13,14 +13,14 @@ byte[] data = Encoding.UTF8.GetBytes("The teacher is awsome");
 
 // encrypt
 using RSA encryptRsa = RSA.Create();
-encryptRsa.ImportRSAPublicKey(publicKeyBytes, out int publicKeyBytesRead);
+encryptRsa.ImportRSAPublicKey(publicKeyBytes, out _);
 byte[] encryptedData = keyRsa.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
 
 Console.WriteLine($"Encrypted data: {Convert.ToBase64String(encryptedData)}\n");
 
 // decrypt
 using RSA decryptRsa = RSA.Create();
-decryptRsa.ImportEncryptedPkcs8PrivateKey(password, privateKeyBytes, out int privateKeyBytesRead);
+decryptRsa.ImportEncryptedPkcs8PrivateKey(password, privateKeyBytes, out _);
 byte[] decryptedData = keyRsa.Decrypt(encryptedData, RSAEncryptionPadding.OaepSHA256);
 
 Console.WriteLine($"Decrypted data: {Encoding.UTF8.GetString(decryptedData)}");

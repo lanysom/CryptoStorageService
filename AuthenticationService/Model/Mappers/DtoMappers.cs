@@ -10,8 +10,8 @@ namespace AuthenticationService.Model.Mappers
             {
                 Id = model.Id,
                 Username = model.Username,
-                EncryptedPrivateKey = model.EncryptedPrivateKey,
-                EncryptedPublicKey = model.PublicKey,
+                EncryptedPrivateKey = Convert.ToBase64String(model.EncryptedPrivateKey),
+                EncryptedPublicKey = Convert.ToBase64String(model.PublicKey),
             };
         }
     }

@@ -55,8 +55,8 @@ namespace Authentication.Controllers
                     {
                         new Claim("Id", userInfo == null ? "" : userInfo.Id.ToString()),
                         new Claim("username", login.Username),
-                        new Claim("publicKey", userInfo == null ? "" : publicKey),
-                        new Claim("privateKey", userInfo == null ? "" : privateKey),
+                        new Claim("publicKey", userInfo == null ? "" : Convert.ToBase64String(publicKey)),
+                        new Claim("privateKey", userInfo == null ? "" : Convert.ToBase64String(privateKey)),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                     }),
                     //Expires = DateTime.UtcNow.AddMinutes(5),
@@ -86,9 +86,9 @@ namespace Authentication.Controllers
                 return BadRequest("Could not create login");
             }
             // creating keys
-            (string encryptedPrivateKey, string PublicKey) = CreateKeyPair(login.Password);
-            user.EncryptedPrivateKey = encryptedPrivateKey;
-            user.PublicKey = PublicKey;
+            RSA rsa = RSA.Create();
+            user.EncryptedPrivateKey = rsa.ExportRSAPrivateKey();
+            user.PublicKey = rsa.ExportRSAPublicKey();
 
             _authenticationProvider.UpdateUser(user);
 
@@ -102,20 +102,6 @@ namespace Authentication.Controllers
             string username = User.Claims.First(c => c.Type == "username").Value;
             ApplicationUser? info = _authenticationProvider.GetUserInfo(username);
             return Ok(info?.Map());
-        }
-
-        private static (string, string) CreateKeyPair(string password)
-        {
-            // creating keys
-            RSA rsa = RSA.Create();
-            //byte[] privateKeyBytes = rsa.ExportEncryptedPkcs8PrivateKey(password, new PbeParameters(PbeEncryptionAlgorithm.Aes128Cbc, HashAlgorithmName.SHA256, 1000));
-            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
-            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
-
-            string privateKey = Convert.ToBase64String(privateKeyBytes);
-            string publicKey = Convert.ToBase64String(publicKeyBytes);
-
-            return (privateKey, publicKey);
         }
     }
 }

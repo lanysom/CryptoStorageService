@@ -104,7 +104,7 @@ namespace CryptoStorageService.Controllers
             byte[] publicKeyBytes = Convert.FromBase64String(publicKey);
 
             using RSA rsa = RSA.Create();
-            rsa.ImportRSAPublicKey(publicKeyBytes, out int bytesRead);
+            rsa.ImportRSAPublicKey(publicKeyBytes, out _);
             byte[] encryptedKey = rsa.Encrypt(key, RSAEncryptionPadding.OaepSHA256);
 
             return new()
@@ -123,7 +123,7 @@ namespace CryptoStorageService.Controllers
             // decrypt symmetric key using the users private key
             byte[] encryptedKey = Convert.FromBase64String(data.EncryptedKey);
             using RSA rsa = RSA.Create();
-            rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out int bytesRead);
+            rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
             byte[] key = rsa.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
 
             // initialize chiphertext bytes

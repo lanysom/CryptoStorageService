@@ -7,7 +7,7 @@ namespace Authentication.Model
         public Guid Id { get; set; }
         public string Username { get; set; } = string.Empty;
         public string PasswordHash{ get; set; } = string.Empty;
-        public string EncryptedPrivateKey { get; set; } = string.Empty;
-        public string PublicKey { get; set; } = string.Empty;
+        public byte[] EncryptedPrivateKey { get; set; } = Array.Empty<byte>();
+        public byte[] PublicKey { get; set; } = Array.Empty<byte>();
     }
 }
