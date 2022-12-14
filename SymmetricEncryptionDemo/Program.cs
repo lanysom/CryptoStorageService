@@ -1,4 +1,5 @@
-﻿using SymmetricEncryptionDemo;
+﻿using Microsoft.Extensions.DependencyInjection;
+using SymmetricEncryptionDemo;
 
 string plaintext = "The workshop instructor is a cryptographic genius";
 
@@ -22,3 +23,4 @@ Console.WriteLine($"Decrypted ciphertext: {CBC.Decrypt(key, nonce, ciphertext)}"
 
 //Console.WriteLine($"Decrypted ciphertext: {CBC_MAC.Decrypt(key, nonce, tag, ciphertext)}");
 //Console.WriteLine($"Decrypted ciphertext: {GCM.Decrypt(key, nonce, tag, ciphertext)}");
+

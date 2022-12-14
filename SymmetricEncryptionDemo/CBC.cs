@@ -14,8 +14,7 @@ namespace SymmetricEncryptionDemo
         {
             byte[] plaintext = Encoding.UTF8.GetBytes(message);
 
-            Aes aes = Aes.Create();           
-
+            Aes aes = Aes.Create();
             byte[] ciphertext = aes.EncryptCbc(plaintext, aes.IV);
 
             return (aes.Key, aes.IV, ciphertext);
@@ -27,7 +26,6 @@ namespace SymmetricEncryptionDemo
             aes.Key = key;
 
             byte[] plaintext = aes.DecryptCbc(ciphertext, iv);
-
 
             return Encoding.UTF8.GetString(plaintext);
         }
