@@ -5,7 +5,7 @@ namespace SymmetricEncryptionDemo
 {
     internal class CBC_MAC
     {
-        public static (string, string, string, string) Encrypt(string message)
+        public static (byte[], byte[], byte[], byte[]) Encrypt(string message)
         {
             // the key length must be 16, 24, or 32 bytes 
             byte[] key = new byte[32];
@@ -22,27 +22,14 @@ namespace SymmetricEncryptionDemo
             byte[] plaintext = Encoding.UTF8.GetBytes(message);
             byte[] ciphertext = new byte[plaintext.Length];
 
-            using AesCcm aesGcm = new(key);
-            aesGcm.Encrypt(nonce, plaintext, ciphertext, tag);
+            using AesCcm aes = new(key);
+            aes.Encrypt(nonce, plaintext, ciphertext, tag);
 
-            string encryptedMessage = Convert.ToBase64String(ciphertext);
-            string generatedTag = Convert.ToBase64String(tag);
-            string generatedNonce = Convert.ToBase64String(nonce);
-            string generatedKey = Convert.ToBase64String(key);
-
-            return (generatedKey, 
-                generatedNonce, 
-                generatedTag, 
-                encryptedMessage);
+            return (key, nonce, tag, ciphertext);
         }
 
-        public static string Decrypt(string keyString, string nonceString, string tagString, string ciphertextString)
+        public static string Decrypt(byte[] key, byte[] nonce, byte[] tag, byte[] ciphertext)
         {
-            byte[] key = Convert.FromBase64String(keyString);
-            byte[] nonce = Convert.FromBase64String(nonceString);
-            byte[] tag = Convert.FromBase64String(tagString);
-            byte[] ciphertext = Convert.FromBase64String(ciphertextString);
-
             // the plaintext and the ciphertext must have the same length.
             byte[] plaintext = new byte[ciphertext.Length];
 
