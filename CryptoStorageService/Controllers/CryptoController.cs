@@ -13,9 +13,9 @@ namespace CryptoStorageService.Controllers
     [Authorize]
     public class CryptoController : ControllerBase
     {
-        private readonly IDao<EncryptedUser> _userDao;
+        private readonly IDao<CryptoData> _userDao;
 
-        public CryptoController(IDao<EncryptedUser> userDao)
+        public CryptoController(IDao<CryptoData> userDao)
         {
             _userDao = userDao;
         }
@@ -26,7 +26,7 @@ namespace CryptoStorageService.Controllers
             try
             {
                 // Gets encrypted user info from db 
-                EncryptedUser? user = _userDao.Read(id);
+                CryptoData? user = _userDao.Read(id);
                 if (user == null)
                 {
                     return NotFound();
@@ -56,11 +56,11 @@ namespace CryptoStorageService.Controllers
             string id = User.Claims.First(c => c.Type == "Id").Value;
             string userPublicKey = User.Claims.First(c => c.Type == "publicKey").Value;
 
-            // encrypts user data 
-            EncryptedUser encryptedUser = EncryptData(userDto, id, userPublicKey); 
+            // encrypting data 
+            CryptoData encryptedData = EncryptData(userDto, id, userPublicKey); 
 
-            _userDao.Create(encryptedUser);
-            return Ok(encryptedUser);
+            _userDao.Create(encryptedData);
+            return Ok(encryptedData);
         }
 
         [HttpPut]
@@ -71,13 +71,13 @@ namespace CryptoStorageService.Controllers
             string userPublicKey = User.Claims.First(c => c.Type == "publicKey").Value;
 
             // encrypts user data
-            EncryptedUser encryptedUser = EncryptData(userDto, id, userPublicKey);
+            CryptoData encryptedUser = EncryptData(userDto, id, userPublicKey);
 
             _userDao.Update(encryptedUser);
             return Ok(encryptedUser);
         }
 
-        private static EncryptedUser EncryptData(UserDto userDto, string id, string publicKey)
+        private static CryptoData EncryptData(UserDto userDto, string id, string publicKey)
         {
             // generate symmetric encryption key
             byte[] key = new byte[32];
@@ -118,7 +118,7 @@ namespace CryptoStorageService.Controllers
         }
 
         
-        private static UserDto? DecryptData(EncryptedUser data, string privateKey)
+        private static UserDto? DecryptData(CryptoData data, string privateKey)
         {
             // decrypt symmetric key using the users private key
             using RSA rsa = RSA.Create();

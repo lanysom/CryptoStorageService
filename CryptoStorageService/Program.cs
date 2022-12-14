@@ -6,7 +6,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddScoped<IDao<EncryptedUser>>(s => DaoFactory.Create<EncryptedUser>());
+builder.Services.AddScoped<IDao<CryptoData>>(s => DaoFactory.Create<CryptoData>());
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

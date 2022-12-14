@@ -1,58 +1,54 @@
 ﻿using Authentication.Model;
+using System.Text.Json;
 
 namespace AuthenticationService.AuthenticationProvider.Data
 {
     public class MemoryAuthenticationDataContext : IAuthenticationDataContext
     {
-        private static List<ApplicationUser> _users = new();
+        //private static List<ApplicationUser> _users = new();
+        private static Dictionary<string, string> _users = new();
 
         static MemoryAuthenticationDataContext()
         {
-            //_users.Add(new()
-            //{
-            //    Id = Guid.Parse("46138a79a6664bcc8e3adcbe0125de78"),
-            //    Username = "bob",
-            //    PasswordHash = "ZbH5D/nVTwgKc21FaDxpig8G91fdOsD0yN5OJ4tVRvQPFSzDnV2uNI0QvLyE41Na",
-            //    EncryptedPrivateKey = "MIIEpQIBAAKCAQEAxIiTBKaRmGeVr4/Flf5VkwZexTLvzVi2YimTVAzzkcNof7PnGaFOksgFiarvTsBZpt/XmjTAXAjDl3/cn5kx8cvyKZg6TDjI4IBlqxsX5OYoH0AHOizUOWKujbiBie+kSTgDMlPI72qKUp3xXN80FFJvezuH1/JwFR4HqdC7YgnbOb5L5WJPtBA7edNj4EGB7m4dGvJs3dvoXfUaGxPuy0imy50Bi4NLV6jcM3DMqdEgAs+FuaCg8bUiFhNRTRTkKcp23yNcNgsW7rw66RknVDCwojLIPPmBSELJOFIIiljoqnSPOy7gdiADJlbPtM8nIcn/RNiA030AlEmffWmeZQIDAQABAoIBAQCAWjWx9trlbtkKVFoVUIowwBtKrK6CLKrIRyDJ5r939eecZzDJw1hecjVzqGgrxWGHo27abhMmyC59FetPbCx7HtfjpGCGgRtny1MawVIEku+nIRjXPInJhJI9Sj+HhzODAgrMZn23Jpx5wl7saXVIxGG8WK+qL9JVaExW8lQ+fM5lwRXVxmiZ132OWa81AfKrq6h6vb1k90bP5qaNx5W9m7QaMGteZgSAPGocGDaU4qPzMdAg1UD8kfzRNzI+A1pZqCZePcVP/mEGL7iQxdWDL4/VjtWUmq6KMZmls30eplrG5/xT4AvIQ4unJUQe4Ae1IquZbObPRGpY5dEhpRftAoGBAN0qS4s5QkNomRqHLqFwIe8bDki54cFLlIRc9WVFdZB1Zj0E7lcuAYnxvgSVniuPuZlnushFBdVHDUSEkV5OlmtJ07LaXo27rPlLYxuEExo1dkbdyy1HbA2I2oeYwgkIJW7FP67cNmim00rMhCr2BESClQdniWeCV59VG+lZnYGnAoGBAON9F5cRdOme1hhm1RP7KSCcj5mtdhYJuALqoGNERPiI60j1RDiledfNU4dQ9nt8Wu23VNy7rr5s5PLocZ4shYQMMRHqP1ht2EyJ/VAskKOi0mQ74Wq+C7UwOqzADSe1C03XrC5xqlyqVYfnvpZLP1XJzvqacUelZsGgHs/tiOkTAoGBAIpViirrBadkJV+SbnhLyu3j3mte2PYucBbajiNp7r8Mr4Y7L1kYTZ4att/nNafJni111D6v7ZYZexMAWGzEexFgfCnCrKG6YdcMcFElq00ZY4Gv+QW5RrywfP+TbMp5bfB7L/oPg3ix4DdI9OJqPwEbLFwVRryXqnbepTav9vTBAoGADkwzalw/g9tmy1vTMpFLkXAlmlwLmvD7brt+Xx7QUuqQFyLLKeBEmyqdgFi3VSWItX4bSFBHeFJxxU6UrYNQ1O7LOrwFRTKKMK1PjXVvlclK/d/BmCrfo4Cnf2oGqaM4VakjejvMoExYWdVX5ixOi77GUnvYeM9NeQfuR9U/EJ8CgYEAo9NAMhKEZv89X1aKxOFeMo/uCKqANjQg3jVnjdTOyt+JVJIOLRHyfqEhLmY4vLFo0gIs+fq50XLgfQPCfCP3LT4IwGzL5DQoMgtBSUesZP+oBWHan7uBoKeaL9tLOH9gH+ZHJjeFUxPqaBHiPQ2sw9Ruz3WPmcC4Rm17Ik2kxpU=",
-            //    PublicKey = "MIIBCgKCAQEAxIiTBKaRmGeVr4/Flf5VkwZexTLvzVi2YimTVAzzkcNof7PnGaFOksgFiarvTsBZpt/XmjTAXAjDl3/cn5kx8cvyKZg6TDjI4IBlqxsX5OYoH0AHOizUOWKujbiBie+kSTgDMlPI72qKUp3xXN80FFJvezuH1/JwFR4HqdC7YgnbOb5L5WJPtBA7edNj4EGB7m4dGvJs3dvoXfUaGxPuy0imy50Bi4NLV6jcM3DMqdEgAs+FuaCg8bUiFhNRTRTkKcp23yNcNgsW7rw66RknVDCwojLIPPmBSELJOFIIiljoqnSPOy7gdiADJlbPtM8nIcn/RNiA030AlEmffWmeZQIDAQAB"
-            //});
-            //_users.Add(new()
-            //{
-            //    Id = Guid.Parse("3bf79df3d19046128d42f086cf44056f"),
-            //    Username = "alice",
-            //    PasswordHash = "RkLqGpvrtJ40ZdO3O5JL5tv/UBo6LB1w92MHQztx8JEHvj8Pz9IIMz5R/xENn0S/",
-            //    EncryptedPrivateKey = "MIIEowIBAAKCAQEA0Ia1iRgz0SvVNep5qUsXomubcItTTW2/p9iheiPdtO6KpfpC+GcnPslFlEewTqPf3ThgLjMxQ2h1RpZ4ihEc2/0JbcrwHnf25rZIYLdZ+hJg2ybVHxucE8eMnFUBH8NW2pvCO1k6Kq7jgZuogO790hiFdBHunCfKshegPy3gPL9xKhO8WiSoCzaKB88VjrEzrY7vggwAlEzcKuxFrEDJdj+UF4emWJeV+PeRHPf9vbwSyjZbL661+/vD9uNjHrt2cqmpaosqTTvDSZjQmzWYdfl6heeHVJSeumFLG5ZqNyNsFhLnEFc4f2DGQ3BXuGwsF7Oj0vvju/2G9woUUP1EiQIDAQABAoIBAEe7Dxdpy+lYOq+hSNiDjE3C1mWQh8dKyXLjgiiRzeI/bFJMFF1+nnFqqxSm1G84z/k5O1ypH3kgpbbya+SSnmrOUEAEXzUb70LN0Xfzmm/7gnXglc9tn/Lt4eClHQ3gFDB/BAGGYAvuvTQIZ55yl7190eprgLkWtxMsLWOOVGSQlzuBlFX+5qvUjBPSeeKT+kmXWtwyHMYeOF0m9coNlOjbRsbsEAdcjqVhe1qY7WwCaUaC12gZLmyPhpgXfWu9BFWerIG1BIHFsyLNKdH3ODlbSySJxUoLa8dfeLWHie9FM4BBm7RfAZ+6Wg5o2dDxEL3xG/7NTHJJhx4qVXyHwUECgYEA3pdBn2aSDNCdfAy/b6k3rBiHcZF+yVcUXux8+lhh6I6XCwf5sayBH/eSO9tksnIImyIrC4UOKlX52r51vXrLVKinp6FAGrwFOVFx3VAP+yalQWs5UxJ2vG0w03xoNXolTD29zBqwJatoT+4rvWugYSd+dGMTNwsE7qJ3M8TymlcCgYEA79MJ5Lk2taI3CMxiKTNDDvfZeVtrUdqezCZHG4gop/aOA1AFnCaVwb9w8+pQ4vM4Z2KAV7fiPi8GPFj48KQu0FzHTBfD/sZVAcmi5pXPMknWn/EzFsgDeRJgQCZaudbNZnXMhVyMepY98CWh5cV+60pN9sBKqLLm3Ujt3KdTjB8CgYBjdslvFiFrMok81mFw3veuoiNb3zz9cTj8FcbfA0F07sqVtlGgUEo+45znvGipyIUJ9WGwuxsSVerZEUSBj+5t/RM1t7tydtQKwdcUouMRQjqUGfq6oUSHfG9WAYB7bQJfqDM4kjBmFMr+9Jl9AivfXguGrIL4lKb2j4iejIIv7wKBgQDbKO5XmHJIlg7Y+X2SzQew/Ao+/q4aRUDsquY8YLdWlte8azpVMmWUgtBD9pMocr/OqpNClgYocWyvZVdJAaDORJrUDLvNbY1tbshxE+IewJ9j1lWrseiKkaJnvSUXwxY9VdUq4iJ2PCop9Rn4Ef0kI+kPXzZa5/JVsjm8dSTCXQKBgGSePv0YdTYPjP8pe53+1MlOUw6G3Mlov4YsUaDAELesludHZN31GORpQo+iDka7pB0fH7vXdUCqck01WDbNSWcIuDR/Tt83oORNIFAM/ZSbLeh9FYxf57zcsIN9uJjB21aRPvCTBau7RudRmdXYJLuh32M5VDRpgj+AOimQCHQJ",
-            //    PublicKey = "MIIBCgKCAQEA0Ia1iRgz0SvVNep5qUsXomubcItTTW2/p9iheiPdtO6KpfpC+GcnPslFlEewTqPf3ThgLjMxQ2h1RpZ4ihEc2/0JbcrwHnf25rZIYLdZ+hJg2ybVHxucE8eMnFUBH8NW2pvCO1k6Kq7jgZuogO790hiFdBHunCfKshegPy3gPL9xKhO8WiSoCzaKB88VjrEzrY7vggwAlEzcKuxFrEDJdj+UF4emWJeV+PeRHPf9vbwSyjZbL661+/vD9uNjHrt2cqmpaosqTTvDSZjQmzWYdfl6heeHVJSeumFLG5ZqNyNsFhLnEFc4f2DGQ3BXuGwsF7Oj0vvju/2G9woUUP1EiQIDAQAB"
-            //});
+            _users.Add("alice", "{\"Id\":\"9273742a-cc58-4bbd-96b3-fd32fab13836\",\"Username\":\"alice\",\"PasswordHash\":\"5okxIK8Yd3YowJHtgLXvRwf7k6O78EYVkgvE4Q7W6Ub2B4WQScBns3fhnxCk7Jmd\",\"EncryptedPrivateKey\":\"MIIFNTBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQwQlWPnO6qcbHWfa02TclWAICA+gwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEAQIEEPQ0ClU7kLqnJlVKT/c7AsgEggTQkkqLOwotfzmV1NACy+ErDja5px/jvn+u84XypVBtd/Rk+f0Oj9wcVdNr3ZBJG5KYX1syKAfpWWz5sJ5DF0sCJCsfxiNIT56lZwee4H5fseQdq7ehWuoHA6YoXxAz278WhAcXwhwnI4uXlJoLFB2+LyOVsjV1I9wpAL4zF/Qo4hAC9YiBmDzQvefFPosPXXzuMKi6qj4TfkMJyrzfqWAmeczYP260X0bC16SRtnwoEhKDjXgA4ekUG6yHhBtQidiRdWQqRQw4p8/sxhR+Hcplb+bD4fThau3+6m1yv7KblfWaVMWuOZRkcYIYjV/aSfcPfQ9BMZ7hRqSF9XVB94c1KHybNqnNhg85JuQ8uNLcSjl/P7aKjgOvIY3eJ12l9GDRaZJK95y1cbnrWPdgTVwsJDbqEY7/4RxyCISuV1hCR8Syms1d5dsW56NhEf8iISqHsAhelFaz4R+PiozBC9tIKaKnSMJPnhX5j7huyXuaOwyBjv+vZ7QeXikmC+SCcYo9otZARLirqFIxDgll3KZ5yjTc7rGD1erNIVxlyWEJnnYZQO5KEGZw3x9VEUpHeBQahNEF6opJ1HUzCxMLu9k5QhkgR2aQqosqoueHSttHOhCfp5Ln1pVELiif4s8HAU7RIMjx3o0Ehcd/LwQgS/OhvpRDLDutLfAqWwTq1cdTTV43QS5nOwmQoZjk6ChvLYL4yOoaYPAkc84WCKiXmuHAMuTHYmTkWnVvLJn5OvPSjXgLOJuqDcQZ/R9Eb9l0gafJKMXEJALyukd8taUBQYD4vdYhndHb51ebivgFVshTyWcdC/lfQcA4p3pvzaJI6TbUrBG7cqPg9YUIfNkXuetLdjWvtCdf91pC0WPmue/FDlBuvFgJgIGAOOkhn6dYa3XTReinA1birb6grHMPurcufANLXaty9Q2np3k2U39ExbtlQO7VWYIj4VvOqzmQW4BJ5/A40Gz3QJ7DlnLIZpFOaTDsQL/9EuFJpQbyyhl0bP99iVJ93lfeSKcEAs+7Y0AJC3ittQLQu3PtTsQE2FLAS5mQvurf6bOLMH9KnkpPtOB5BzlDIBIDWWb0Xus7e91R09Q02ADOvBQaefIatZFgYFqmMjZISOly3FeRrQXLmDyj503FhE2mcJhZmMVff3Vk2zOBqH0FlFw7Uze9/6sXAvAltPoLgIT9ddOGol8vpOPeqNbpQfDM7MRmzhKi+73qnH3MtyAKxLzZb0G7D2/tKyfgHnE0TxUwY391MvtYDunxV6qcKYmMYUaDBpgf9mSGfmA2koqJw/kECV7ZLVYSJNAYiAjZmHwFiTs9aHwqy42Y2xPCJi6lqaAV5r0toxB9sgtnDen1vmjrLnq4GkKOYyZ449q1XhtO1D83jsNYMIhT1iWKcvaMA4AXPcJ42YjFU0qe1ktVa11ffkOKAGjLbvMYOxgKwGssDVGVxedSEKBM3I2/HjRquBjqjM2JOSZxJ5NYfYslmcYKKNvovdhUFzpIJ3wbhEXhew43IzcnRW8ZUckQgas3BYZKWQw0YzzKk1eLtkixma+5fsuot+1DFD7RRlXtpX8bvyHenG5cnZcacbAhyxGeJXwtIj70mUex08+YmhEA/Hqp5FKdkEUdRGFbnWU5dYEDKWoDiRo7M5k=\",\"PublicKey\":\"MIIBCgKCAQEAzK7wuJODIGDe2zFmZx6zRIbohlGx/TqglzC3S24yJEhisoJBnLq389PdGRHuHz8JHarDOppcspoov1dp80F1sjSIlS6HcZy6gTM40SPa/eGDEx5FwSp6E+ZGytP6SLKIJgHnCIWPu9Xo5IedPD04uPenZA0ZRQufaOt8/l4qxsKUCwfdEiLTgw9o5JNywFyoR4tSB+xLSv+p/QTSW/22E3IFJnlWnyWfLx1EBpQImR/js8Lt9seBhSRmXoWaw3DcVZyr9dA24HlJn0cuPJZ+5eO8AfbsHFsFU0t5gZYZjibIsCtxzxrgW2GfBY43DaKS0hrdqA/ZKNHKvZlv9SIVMQIDAQAB\"}");
+            _users.Add("bob", "{\"Id\":\"98cdfb87-70f9-4b86-b22e-91f866e7b247\",\"Username\":\"bob\",\"PasswordHash\":\"iiHYBmnhrX/Eqpcgkco6cPIM/s7\\u002BUH2kzCFMnaCUEypL4rz4qT\\u002B0UnXwtCOCMw7o\",\"EncryptedPrivateKey\":\"MIIFNTBfBgkqhkiG9w0BBQ0wUjAxBgkqhkiG9w0BBQwwJAQQ9XzcP22mSaVsDrHbGDvbOgICA+gwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEAQIEEGTY+RaKGOBDYdzPXsY9IUIEggTQDs30aF+x5PA44AhcOuw4JigBeQAyBkuYIZa79SeqGBHczVyWyS24dDfpQrBKfG/u46ZmZQMtnKXM6ysuuPqou49PVAE1EAmaFE/U44h+51HATwV4pufVNMEQAwwwzVb/6KZcSHt67N/9WYL4hSlCM45ly/OQfZ/dq72EFQJ4XFBpDtRJZRbi/xlPgU1/+Lll6yA63oS+nU/kukGOdRTGseyI54O2mOk9VRgwZ3Gk1sSfOe/2H8JC/mRgYAElE1amyudAGXuTcY0MHHrMofz+QvfCbtVGiE+xF5dxQI+XyIf+iS5N14pP9tEjE/tD7/rxLegjyOCxpmIQ/zZR5ls3uCSeDYQMRXIuIZchILOWhmUMg3rowjN5QgUCZhFKMVTBkYCLYLUEfSXhXHzrw1/YjhowYzYuBBBO8It09ev+9Q0t8PSbBUmvyQPyriE3rJo62UsVe4tomNTCX3ecN4W6TPvoabWfOLKSTey0tuig5dVCJmhP2au6M7BbxD14Hegpr3T2xvj7I4P9AB+rdxMjUf1x8QWrMRZBgw/FGpfA4oRVarA1qlTAhhYNpAWgEcKsOheFvye1k/N/Gw2g5UrJCAHPCtTS9S5v3mZ/tIFob319iuMoPncXr/J3bq1YxDi7C1mGdYfeC4qTS/2JcaUuUL85WJ5pdO4xY7CI2PRQMvz3dfzuVdQM9oTOf4txxqSjrIg/t9owqNK9kvqnlFWESPdI6GB4kDtxR2mHtu6fF+vkfF9ku9bMUTOR5C86TVAVSidZoOCpSJS1/LGTcm/cDoPPcRKhl/ICy5ND9zuxPD3znbExr3xJpV0TC/kuX4r4QtekXJvhVOqafpBky+5pLxydJduk+lK4337nv1GjvEQn02eadyO1BgG/zKdSuNfJUJNUOOO6ezNTMVaP6kMQ6m7jbXu8QhBRLI74VdvwAh2+0Kmr+tAbn2JzG39Xw0qSwuNB1pQKnmNtOEWNHldMu02nbSGJD1RTgYjBkQK7RI+v7dhRuMfazY8+HHacIotNumwl1m8/davttuMK4Ee+TXh66pS+P/Ic/WRHWfQkoltEk7eZOK/rwa/Y3k2JKZlXqBAkBeyGFaBlJ/nzmLETIga2mIJF1jY7h+dMDERyqGD7Fy/5YI9OSjMqnctQuTakUg8eW0bLNpH5SWTl74SKOjBijRX9bob2ZmXWW07McPRaJ0PUwaSJXRbPwPGzrmuGNp2rFfuVwpH5MWsmIKO2qQGQ0Eik90gSImYWXjGuBUJJMR3D5CAqHmfJ/aBkNVD0CpRCAlCdNXNar/siOEn4h6E2IndFytw7mFoULu6/OW97nQLe6uk4PlTjL2N7klaLV1tXFLy/kXSHLkzbMNEhR6ZSuXu3qfCgPNGktUAnG/VntdjwPX3u6Xg5mY0x4so/y4O8JWNRi4ly4zKoQO7BkmF//J5v2c/gq1y3MFoV005SRaYCeWgPV+L+zalN+zzxfrhQUVxTwI4VbGyWhshM4hwEvlOyGbr0O2Eg4xNB2ldY0mofW5R77/OZl3riEenaJY5z0/ywPNXP1boV5MS3o5zgxqKoFcr0ZFoqYqBIbnstoLwmFLFaMgmXxhik997K+c3hN3FuIESzK6qT4mzjr5zc4jTvlzDDOD9R1onFZzM=\",\"PublicKey\":\"MIIBCgKCAQEA0+tpitrwoyzgR2hHSJu60JDdWmLy+QiVfnjNo7TfYWd4R7BkBOsIKStW/B78xgu7ePTbMJWnafOgkIET0F3Sr8aRKPUuqxxVd1N04MN9vTZlB7gQmXPa7IiPgN4LAsyy12gLtYBafArvR/tDRXovav/+By644kFVtDdufwEjj5YGW2ME8tDIDxiKd16bpdgzmMRdQWt5CrTjcVmayHJxrhed1C9nuzhdk2SaMZv6nfuP2VJz7ir7jWhYdxIMHs64x8fSe4TJSU6C2a1L58sL+kQxlYXx9xUUG2jRaZ/ODS4DBZwHcstP6+l1OqP2mc2esWlSz45DQfofsfRR4WESkQIDAQAB\"}");
         }
 
         public void AddUser(ApplicationUser user)
         {
-            _users.Add(user);
+            string serializedUser = JsonSerializer.Serialize(user);
+            _users.Add(user.Username, serializedUser);
         }
 
         public ApplicationUser? GetUser(string username)
         {
-            return _users.SingleOrDefault(x => x.Username == username);
+            string userJson = _users.SingleOrDefault(x => x.Key == username).Value;
+            if (userJson != null)
+            {
+                return JsonSerializer.Deserialize<ApplicationUser>(userJson);
+            }
+            return null;
         }
 
         public void RemoveUser(string username)
         {
-            ApplicationUser? user = _users.SingleOrDefault(x => x.Username == username);
-            if (user != null)
-            {
-                _users.Remove(user);
-            }
+            _users.Remove(username);
         }
 
         public void UpdateUser(ApplicationUser newUser)
         {
-            ApplicationUser? oldUser = _users.SingleOrDefault(x => x.Username == newUser.Username);
-            if (oldUser != null)
+            string userJson = _users.SingleOrDefault(k => k.Key == newUser.Username).Value;
+            if (userJson != null)
             {
-                oldUser.Username = newUser.Username;
-                oldUser.EncryptedPrivateKey = newUser.EncryptedPrivateKey;
-                oldUser.PublicKey = newUser.PublicKey;
+                ApplicationUser? oldUser = JsonSerializer.Deserialize<ApplicationUser>(userJson);
+                if (oldUser != null)
+                {
+                    oldUser.Username = newUser.Username;
+                    oldUser.EncryptedPrivateKey = newUser.EncryptedPrivateKey;
+                    oldUser.PublicKey = newUser.PublicKey;
+                }
+                string serializedUser = JsonSerializer.Serialize(oldUser);
+                _users[newUser.Username] = serializedUser;
             }
         }
     }

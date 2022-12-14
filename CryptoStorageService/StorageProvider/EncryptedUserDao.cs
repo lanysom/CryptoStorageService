@@ -1,8 +1,8 @@
 ﻿namespace StorageProvider
 {
-    public class EncryptedUserDao : IDao<EncryptedUser>
+    public class EncryptedUserDao : IDao<CryptoData>
     {
-        private static readonly List<EncryptedUser> users = new();
+        private static readonly List<CryptoData> users = new();
 
         static EncryptedUserDao()
         {
@@ -20,23 +20,23 @@
             //}); 
         }
 
-        public void Create(EncryptedUser entity)
+        public void Create(CryptoData entity)
         {
-            EncryptedUser? user = users.Find(u => u.Id == entity.Id);
+            CryptoData? user = users.Find(u => u.Id == entity.Id);
             if (user == null)
             {
                 users.Add(entity);
             }
         }
 
-        public EncryptedUser? Read(Guid id)
+        public CryptoData? Read(Guid id)
         {
             return users.Find(u => u.Id == id);
         }
 
-        public bool Update(EncryptedUser entity)
+        public bool Update(CryptoData entity)
         {
-            EncryptedUser? updateUser = users.Find(u => u.Id == entity.Id);
+            CryptoData? updateUser = users.Find(u => u.Id == entity.Id);
             if (updateUser == null)
             {
                 return false;
@@ -48,7 +48,7 @@
 
         public bool Delete(Guid id)
         {
-            EncryptedUser? deleteUser = users.Find(u => u.Id == id);
+            CryptoData? deleteUser = users.Find(u => u.Id == id);
             if (deleteUser == null)
             {
                 return false;

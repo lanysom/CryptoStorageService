@@ -1,6 +1,6 @@
 ﻿namespace StorageProvider
 {
-    public class EncryptedUser
+    public class CryptoData
     {
         public Guid Id { get; set; }
         public byte[] EncryptedData { get; set; } = Array.Empty<byte>();
